@@ -27,31 +27,35 @@ public class SniffExample {
 
         List<Item> indexControllerResponse = new ArrayList<>();
 
-        String response = restTemplate.getForObject("http://www.njuskalo.hr/auti/vw-golf-vi?page=1", String.class);
-        Document doc = Jsoup.parse(response);
+        for (int i = 1; i < 16; i++) {
+            String response = restTemplate.getForObject("http://www.njuskalo.hr/auti/vw-golf-vi?page=" + i, String.class);
+            Document doc = Jsoup.parse(response);
 
-        Elements itemContainers = doc.select(".EntityList-items");
-        itemContainers.forEach(itemContainer -> {
+            Elements itemContainers = doc.select(".EntityList-items");
+            itemContainers.forEach(itemContainer -> {
 
-            Elements items = itemContainer.select(".EntityList-item");
-            items.forEach(item -> {
+                Elements items = itemContainer.select(".EntityList-item");
+                items.forEach(item -> {
 
-                Elements titles = item.select(".entity-title");
-                if (titles.size() > 0) {
-                    Element title = titles.get(0);
-                    String text = title.text();
-                    String url = title.childNodeSize() > 0 ? "http://www.njuskalo.hr" + title.child(0).attr("href") : null;
-                    Elements priceElement = item.select(".price.price--hrk");
-                    String price = priceElement.size() > 0 ? priceElement.get(0).text() : null;
-                    System.out.println();
-                    System.out.println("-----------------------------------------------------------");
-                    System.out.println(text);
-                    System.out.println(url);
-                    System.out.println("-----------------------------------------------------------");
-                    if (price != null) { indexControllerResponse.add(new Item(text, url, price)); }
-                }
+                    Elements titles = item.select(".entity-title");
+                    if (titles.size() > 0) {
+                        Element title = titles.get(0);
+                        String text = title.text();
+                        String url = title.childNodeSize() > 0 ? "http://www.njuskalo.hr" + title.child(0).attr("href") : null;
+                        Elements priceElement = item.select(".price.price--hrk");
+                        String price = priceElement.size() > 0 ? priceElement.get(0).text() : null;
+                        Elements imageElement = item.select("img");
+                        String image = imageElement.size() > 0 ? imageElement.attr("data-src") : null;
+                        System.out.println();
+                        System.out.println("-----------------------------------------------------------");
+                        System.out.println(text);
+                        System.out.println(url);
+                        System.out.println("-----------------------------------------------------------");
+                        if (price != null && text.toLowerCase().contains("golf")) { indexControllerResponse.add(new Item(text, url, price, image)); }
+                    }
+                });
             });
-        });
+        }
 
         indexController.setResponse(indexControllerResponse);
     }
